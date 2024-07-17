@@ -13,26 +13,18 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Set up SSH
-      uses: webfactory/ssh-agent@v0.5.3
-      with:
-        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
-    - name: Add bastion host to known hosts
+    - name: SSH config
       run: |
         mkdir -p ~/.ssh
-        ssh-keyscan 35.73.63.109 >> ~/.ssh/known_hosts
-
-    - name: Add remote host to known hosts
-      run: |
+        
         echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
+
+        ssh-keyscan 35.73.63.109 >> ~/.ssh/known_hosts
         ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ec2-user@35.73.63.109 "ssh-keyscan 10.0.132.235" >> ~/.ssh/known_hosts
       env:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
 
-    - name: Deploy to EC2 via Bastion Host
-      env:
-        SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+    - name: Deploy to EC2
       run: |
-        scp -o ProxyCommand="ssh -W %h:%p ec2-user@35.73.63.109" -r ./build ec2-user@10.0.132.235:/home/ec2-user/
+        scp -i ~/.ssh/id_rsa -o ProxyCommand="ssh -i ~/.ssh/id_rsa -W %h:%p ec2-user@35.73.63.109" -r ./build ec2-user@10.0.132.235:/home/ec2-user/
