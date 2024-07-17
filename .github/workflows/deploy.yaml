@@ -17,7 +17,7 @@ jobs:
       run: |
         mkdir -p ~/.ssh
         echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/yida01.pem
-        chmod 0700 ~/.ssh/yida01.pem
+        chmod 600 ~/.ssh/yida01.pem
 
         echo "Host step01" > ~/.ssh/config
         echo "  HostName 35.73.63.109" >> ~/.ssh/config
@@ -31,6 +31,8 @@ jobs:
         echo "  Port 22" >> ~/.ssh/config
         echo "  IdentityFile ~/.ssh/yida01.pem" >> ~/.ssh/config
         echo "  ProxyCommand ssh -W %h:%p step01" >> ~/.ssh/config
+
+        cat ~/.ssh/config
 
         ssh-keyscan -t rsa -H 35.73.63.109 >> ~/.ssh/known_hosts
         ssh-keyscan -t rsa -H 10.0.132.235 >> ~/.ssh/known_hosts
