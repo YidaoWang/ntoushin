@@ -24,9 +24,11 @@ jobs:
         ssh-keyscan 35.73.63.109 >> ~/.ssh/known_hosts
 
     - name: Add EC2 to known hosts
+      env:
+        SSH_AUTH_SOCK: /tmp/ssh_agent.sock
       run: |
         mkdir -p ~/.ssh
-        ssh-keyscan 10.0.132.235 >> ~/.ssh/known_hosts
+            ssh -o StrictHostKeyChecking=no ec2-user@35.73.63.109 "ssh-keyscan 10.0.132.235" >> ~/.ssh/known_hosts
 
     - name: Deploy to EC2 via Bastion Host
       env:
