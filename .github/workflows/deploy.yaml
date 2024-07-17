@@ -1,4 +1,4 @@
-name: Deploy to EC2
+name: Deploy to EC2 via Bastion Host
 
 on:
   push:
@@ -14,36 +14,22 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Set up SSH
+      uses: webfactory/ssh-agent@v0.5.3
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: Add bastion host to known hosts
       run: |
         mkdir -p ~/.ssh
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/yida01.pem
-        chmod 600 ~/.ssh/yida01.pem
+        ssh-keyscan 35.73.63.109 >> ~/.ssh/known_hosts
 
-        echo "Host step01" > ~/.ssh/config
-        echo "  HostName 35.73.63.109" >> ~/.ssh/config
-        echo "  User ec2-user" >> ~/.ssh/config
-        echo "  Port 22" >> ~/.ssh/config
-        echo "  IdentityFile ~/.ssh/yida01.pem" >> ~/.ssh/config
-
-        echo "Host yida01" >> ~/.ssh/config
-        echo "  HostName 10.0.132.235" >> ~/.ssh/config
-        echo "  User ec2-user" >> ~/.ssh/config
-        echo "  Port 22" >> ~/.ssh/config
-        echo "  IdentityFile ~/.ssh/yida01.pem" >> ~/.ssh/config
-        echo "  ProxyCommand ssh -W %h:%p step01" >> ~/.ssh/config
-
-        cat ~/.ssh/config
-
-        ssh-keyscan -t rsa -H 35.73.63.109 >> ~/.ssh/known_hosts
-        ssh-keyscan -t rsa -H 10.0.132.235 >> ~/.ssh/known_hosts
-
-        # Test SSH connection to bastion host
-        ssh -i ~/.ssh/yida01.pem ec2-user@35.73.63.109 'echo "SSH to bastion host successful"'
-
-        # Test SSH connection to private EC2 instance via bastion host
-        ssh -i ~/.ssh/yida01.pem ec2-user@10.0.132.235 -o "ProxyCommand ssh -W %h:%p ec2-user@35.73.63.109" 'echo "SSH to private EC2 instance successful"'
-
-    - name: Deploy to EC2
+    - name: Add EC2 to known hosts
       run: |
-        scp -o StrictHostKeyChecking=no -r ./build ec2-user@step01:/tmp/build
-        ssh -o StrictHostKeyChecking=no step01 "scp -o StrictHostKeyChecking=no -r /tmp/build ec2-user@yida01:/var/app"
+        mkdir -p ~/.ssh
+        ssh-keyscan 10.0.132.235 >> ~/.ssh/known_hosts
+
+    - name: Deploy to EC2 via Bastion Host
+      env:
+        SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+      run: |
+        scp -o ProxyCommand="ssh -W %h:%p ec2-user@35.73.63.109" -r ./build ec2-user@10.0.132.235:/home/ec2-user/
