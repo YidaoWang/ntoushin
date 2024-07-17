@@ -35,6 +35,12 @@ jobs:
         ssh-keyscan -H 35.73.63.109 >> ~/.ssh/known_hosts
         ssh-keyscan -H 10.0.132.235 >> ~/.ssh/known_hosts
 
+        # Test SSH connection to bastion host
+        ssh -i ~/.ssh/yida01.pem ec2-user@35.73.63.109 'echo "SSH to bastion host successful"'
+
+        # Test SSH connection to private EC2 instance via bastion host
+        ssh -i ~/.ssh/yida01.pem ec2-user@10.0.132.235 -o "ProxyCommand ssh -W %h:%p ec2-user@35.73.63.109" 'echo "SSH to private EC2 instance successful"'
+
     - name: Deploy to EC2
       run: |
         scp -o StrictHostKeyChecking=no -r ./build ec2-user@step01:/tmp/build
