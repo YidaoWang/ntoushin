@@ -23,12 +23,13 @@ jobs:
         mkdir -p ~/.ssh
         ssh-keyscan 35.73.63.109 >> ~/.ssh/known_hosts
 
-    - name: Add EC2 to known hosts via Bastion Host
-      env:
-        SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+    - name: Add remote host to known hosts
       run: |
-        mkdir -p ~/.ssh
-        ssh -o StrictHostKeyChecking=no ec2-user@35.73.63.109 "ssh-keyscan 10.0.132.235" >> ~/.ssh/known_hosts
+        echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ec2-user@35.73.63.109 "ssh-keyscan 10.0.132.235" >> ~/.ssh/known_hosts
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
 
     - name: Deploy to EC2 via Bastion Host
       env:
