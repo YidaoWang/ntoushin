@@ -20,7 +20,9 @@ jobs:
         mkdir -p ~/.ssh
         echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
-
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      
     - name: Deploy to EC2
       run: |
         scp -i ~/.ssh/id_rsa -r ./build ec2-user@${{ env.EC2_HOST }}:/home/ec2-user/
