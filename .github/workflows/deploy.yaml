@@ -15,11 +15,12 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Set up SSH
-      uses: webfactory/ssh-agent@v0.5.3
-      with:
-        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+    - name: SSH config
+      run: |
+        mkdir -p ~/.ssh
+        echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
 
     - name: Deploy to EC2
       run: |
-        scp -r ./build ec2-user@${{ env.EC2_HOST }}:/home/ec2-user/
+        scp -i ~/.ssh/id_rsa -r ./build ec2-user@${{ env.EC2_HOST }}:/home/ec2-user/
