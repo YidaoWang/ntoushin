@@ -8,8 +8,11 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    
     env:
       EC2_HOST: 54.95.167.79
+      EC2_USER: ec2-user
+      APP_NAME: ntoushin
 
     steps:
     - name: Checkout code
@@ -23,7 +26,22 @@ jobs:
         ssh-keyscan ${{ env.EC2_HOST }} >> ~/.ssh/known_hosts
       env:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-      
-    - name: Deploy to EC2
+
+    - name: Build Docker image
+      run: docker build -t ${{ env.APP_NAME }} .
+
+    - name: Save Docker image to file
+      run: docker save ${{ env.APP_NAME }} | gzip > ${{ env.APP_NAME }}.tar.gz
+    
+    - name: Copy Docker image to EC2
       run: |
-        scp -i ~/.ssh/id_rsa -r ./build ec2-user@${{ env.EC2_HOST }}:/home/ec2-user/
+        scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ env.APP_NAME }}.tar.gz ${{ env.EC2_USER }}@${{ env.EC2_HOST }}:/home/${{ env.EC2_USER }}/
+
+    - name: Load and run Docker image on EC2
+      run: |
+        ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ env.EC2_USER }}@${{ env.EC2_HOST }} << 'EOF'
+          docker load -i /home/${{ env.EC2_USER }}/${{ env.APP_NAME }}.tar.gz
+          docker stop ${{ env.APP_NAME }} || true
+          docker rm ${{ env.APP_NAME }} || true
+          docker run -d --name ${{ env.APP_NAME }} -p 80:80 ${{ env.APP_NAME }}
+        EOF
