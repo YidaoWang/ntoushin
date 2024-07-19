@@ -10,7 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       EC2_HOST: 54.95.167.79
-      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
 
     steps:
     - name: Checkout code
@@ -23,4 +22,4 @@ jobs:
 
     - name: Deploy to EC2
       run: |
-        scp -r ./build ec2-user@$EC2_HOST:/home/ec2-user/
+        scp -r ./build ec2-user@${{ env.EC2_HOST }}:/home/ec2-user/
