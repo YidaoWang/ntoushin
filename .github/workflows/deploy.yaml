@@ -1,4 +1,4 @@
-name: Deploy to EC2 via Bastion Host
+name: Deploy to EC2
 
 on:
   push:
@@ -8,23 +8,19 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      EC2_HOST: 54.95.167.79
+      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
-    - name: SSH config
-      run: |
-        mkdir -p ~/.ssh
-        
-        echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
-
-        ssh-keyscan 35.73.63.109 >> ~/.ssh/known_hosts
-        ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ec2-user@35.73.63.109 "ssh-keyscan 10.0.132.235" >> ~/.ssh/known_hosts
-      env:
-        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+    - name: Set up SSH
+      uses: webfactory/ssh-agent@v0.5.3
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
     - name: Deploy to EC2
       run: |
-        scp -i ~/.ssh/id_rsa -o ProxyCommand="ssh -i ~/.ssh/id_rsa -W %h:%p ec2-user@35.73.63.109" -r ./build ec2-user@10.0.132.235:/home/ec2-user/
+        scp -r ./build ec2-user@$EC2_HOST:/home/ec2-user/
