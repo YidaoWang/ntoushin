@@ -2,7 +2,9 @@
 // README at: https://github.com/devcontainers/templates/tree/main/src/docker-existing-dockerfile
 {
 	"name": "Existing Dockerfile",
-	"image": "animcogn/face_recognition:cpu",
+	"build": {
+        "dockerfile": "Dockerfile"
+    },
 	"customizations": {
 		"vscode": {
 			"extensions": [
@@ -20,7 +22,7 @@
 	//"forwardPorts": [],
 
 	// Uncomment the next line to run commands after the container is created.
-	"postCreateCommand": "pip3 install -r requirements.txt"
+	// "postCreateCommand": ""
 
 	// Configure tool-specific properties.
 	// "customizations": {},
