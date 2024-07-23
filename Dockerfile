@@ -1,10 +1,10 @@
-FROM python:3.10-slim
+FROM animcogn/face_recognition:cpu
 
-WORKDIR /src
+WORKDIR /app
 
-COPY src src
+COPY . /app
 
-RUN pip install --no-cache-dir fastapi uvicorn
+RUN pip3 install -r requirements.txt
 
 EXPOSE 80
 

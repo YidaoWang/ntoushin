@@ -1,0 +1,5 @@
+services:
+  ntoushin:
+    build: .
+    ports:
+      - "80:80"
