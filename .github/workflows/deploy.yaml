@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     
     env:
-      EC2_HOST: 54.95.167.79
+      EC2_HOST: 35.77.83.21
       EC2_USER: ec2-user
       APP_NAME: ntoushin
 
